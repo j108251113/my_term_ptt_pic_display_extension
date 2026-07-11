@@ -1,0 +1,36 @@
+name: Sign XPI (AMO)
+
+on:
+  workflow_dispatch: {}
+  push:
+    branches:
+      - main
+      - 'release/**'
+
+jobs:
+  sign:
+    name: Sign extension with AMO
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Sign .xpi with web-ext (AMO)
+        working-directory: firefox_extension/my_term_ptt_pic_display_extension
+        env:
+          WEB_EXT_API_KEY: ${{ secrets.WEB_EXT_API_KEY }}
+          WEB_EXT_API_SECRET: ${{ secrets.WEB_EXT_API_SECRET }}
+        run: |
+          mkdir -p signed
+          npx --yes web-ext sign --source-dir . --artifacts-dir signed --channel=unlisted
+
+      - name: Upload signed XPI
+        uses: actions/upload-artifact@v4
+        with:
+          name: signed-xpi
+          path: firefox_extension/my_term_ptt_pic_display_extension/signed/*.xpi
